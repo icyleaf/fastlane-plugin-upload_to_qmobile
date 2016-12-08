@@ -1,0 +1,6 @@
+lane :test do
+  upload_to_qmobile(
+    api_key: 'fill-api-key',
+    file: '/path/to/your/app/file'
+  )
+end
