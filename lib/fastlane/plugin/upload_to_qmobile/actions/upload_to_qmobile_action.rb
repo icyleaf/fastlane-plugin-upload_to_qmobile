@@ -16,8 +16,8 @@ module Fastlane
 
         UI.user_error! 'You have to either pass an ipa or an apk file' unless @file
 
-        @app = AppInfo.parse(@file)
-        @client = QMA::Client.new(@user_key, config_file: @config_file)
+        @app = ::AppInfo.parse(@file)
+        @client = ::QMA::Client.new(@user_key, config_file: @config_file)
 
         print_table!
         upload!
@@ -151,7 +151,7 @@ module Fastlane
                                        optional: true),
           FastlaneCore::ConfigItem.new(key: :ci_url,
                                        env_name: 'QMOBILE_CI_URL',
-                                       default_value: ENV['CICL_URL'],
+                                       default_value: ENV['CICL_PROJECT_URL'],
                                        description: 'ci url (automatic detect with ci_changelog)',
                                        optional: true),
           FastlaneCore::ConfigItem.new(key: :config_path,
