@@ -88,20 +88,21 @@ module Fastlane
       end
 
       def self.description
-        'Upload mobile app to qmobile'.freeze
+        'Upload mobile app to qmobile.'.freeze
       end
 
       def self.authors
-        ["icyleaf"]
+        ["icyleaf <icyleaf.cn@gmail.com>"]
       end
 
-      def self.return_value
-        Actions.lane_context[SharedValues::QMOBILE_PUBLISH_URL] = url
-        ENV[SharedValues::QMOBILE_PUBLISH_URL.to_s] = url
+      def self.output
+        [
+          [SharedValues::QMOBILE_PUBLISH_URL.to_s, 'the build url of deliver to qmobile']
+        ]
       end
 
       def self.details
-        'Upload apk/ipa app to qmobile'.freeze
+        'Deliver any ipa or apk file but only running with qyer inc, better works with ci_changelog plugin'.freeze
       end
 
       def self.available_options
@@ -130,7 +131,7 @@ module Fastlane
                                        optional: true),
           FastlaneCore::ConfigItem.new(key: :changelog,
                                        env_name: 'QMOBILE_CHANGELOG',
-                                       description: 'changelog',
+                                       description: 'changelog (automatic detect with ci_changelog)',
                                        default_value: ENV['CICL_CHANGELOG'],
                                        optional: true),
           FastlaneCore::ConfigItem.new(key: :channel,
@@ -140,31 +141,31 @@ module Fastlane
                                        optional: true),
           FastlaneCore::ConfigItem.new(key: :branch,
                                        env_name: 'QMOBILE_GIT_BRANCH',
-                                       description: 'git branch name',
+                                       description: 'git branch name (automatic detect with ci_changelog)',
                                        default_value: ENV['CICL_BRANCH'],
                                        optional: true),
           FastlaneCore::ConfigItem.new(key: :commit,
                                        env_name: 'QMOBILE_GIT_COMMIT',
-                                       description: 'git last commit',
+                                       description: 'git last commit (automatic detect with ci_changelog)',
                                        default_value: ENV['CICL_COMMIT'],
                                        optional: true),
           FastlaneCore::ConfigItem.new(key: :ci_url,
                                        env_name: 'QMOBILE_CI_URL',
                                        default_value: ENV['CICL_URL'],
-                                       description: 'ci url',
+                                       description: 'ci url (automatic detect with ci_changelog)',
                                        optional: true),
           FastlaneCore::ConfigItem.new(key: :config_path,
                                        env_name: 'QMOBILE_CONFIG_PATH',
-                                       description: 'The path to qma confiuration file',
+                                       description: 'the path to qma confiuration file',
                                        optional: true),
           FastlaneCore::ConfigItem.new(key: :host_type,
                                        env_name: 'QMOBILE_HOST_TYPE',
-                                       description: 'The host type to upload host domain',
+                                       description: 'the host type to upload host domain',
                                        default_value: 'external',
                                        optional: true),
           FastlaneCore::ConfigItem.new(key: :custom_data,
                                        env_name: 'QMOBILE_CUSTOM_DATA',
-                                       description: 'Custom data to build query params',
+                                       description: 'custom data to build query params',
                                        optional: true)
         ]
       end
