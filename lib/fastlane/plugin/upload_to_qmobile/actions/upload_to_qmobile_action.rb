@@ -7,17 +7,22 @@ module Fastlane
     end
 
     class UploadToQmobileAction < Action
-      def self.run(params)
-        @options = params
-        @user_key = params.fetch(:api_key)
-        @config_file = params.fetch(:config_path)
-        @host_type = params.fetch(:host_type).to_sym
-        @file = params.fetch(:file)
+      def self.run(options)
+        @options = options
+        @user_key = options.fetch(:api_key)
+        @config_file = options.fetch(:config_path)
+        @host_type = options.fetch(:host_type).to_sym
+        @file = options.fetch(:file)
 
         UI.user_error! 'You have to either pass an ipa or an apk file' unless @file
 
         @app = ::AppInfo.parse(@file)
-        @client = ::QMA::Client.new(@user_key, config_file: @config_file)
+        @client = ::QMA::Client.new(
+          @user_key,
+          version: options[:api_version],
+          timeout: options[:timeout],
+          config_file: @config_file
+        )
 
         print_table!
         upload!
@@ -25,26 +30,28 @@ module Fastlane
 
       def self.print_table!
         params = {
-          url: @client.config.send("#{@host_type}_host"),
-          channel: @options.fetch(:channel),
-          file: @file
+          channel: @options[:channel],
+          timeout: @options[:timeout],
+          url: @client.request_url(@host_type),
+          file: @file,
+          icon: File.basename(app_icon_file)
         }.merge(query_params)
 
         FastlaneCore::PrintTable.print_values(config: params,
                                               title: "Summary for upload_to_qmobile #{UploadToQmobile::VERSION}",
-                                              hide_keys: [:devices])
+                                              hide_keys: [:devices, :changelog])
       end
 
       def self.upload!
         UI.message 'Uploading to qmobile ...'
-        response = @client.upload(@file, host_type: @host_type, params: query_params)
+        response = @client.upload(@file, host_type: @host_type, params: query_params.merge({ icon: File.open(app_icon_file) }))
 
         case response[:code]
         when 201
           Helper::UploadToQmobileHelper.new_upload(response)
         when 200
           Helper::UploadToQmobileHelper.found_exist(response)
-        when 400..428
+        when 400..500
           Helper::UploadToQmobileHelper.fail_valid(response)
         else
           UI.user_error! json[:message].to_s
@@ -87,6 +94,17 @@ module Fastlane
         params
       end
 
+      def self.app_icon_file
+        return @icon_file if @icon_file
+
+        @icon_file = @app.icons.try(:[], -1).try(:[], :file)
+        if !@icon_file.empty? && File.exist?(@icon_file)
+          Pngdefry.defry(@icon_file, @icon_file)
+        end
+
+        @icon_file
+      end
+
       def self.description
         'Upload mobile app to qmobile.'.freeze
       end
@@ -117,10 +135,7 @@ module Fastlane
                                        env_name: 'QMOBILE_FILE',
                                        description: 'path to your app file. Optional if you use the `gym`, `ipa`, `xcodebuild` or `gradle` action. ',
                                        default_value: Actions.lane_context[SharedValues::IPA_OUTPUT_PATH] || Dir['*.ipa'].last || Actions.lane_context[SharedValues::GRADLE_APK_OUTPUT_PATH] || Dir['*.apk'].last,
-                                       optional: true,
-                                       verify_block: proc do |value|
-                                         raise "Couldn't find file".red unless File.exist?(value)
-                                       end),
+                                       optional: true),
           FastlaneCore::ConfigItem.new(key: :app_name,
                                        env_name: 'QMOBILE_APP_NAME',
                                        description: 'app name',
@@ -162,6 +177,16 @@ module Fastlane
                                        env_name: 'QMOBILE_HOST_TYPE',
                                        description: 'the host type to upload host domain',
                                        default_value: 'external',
+                                       optional: true),
+          FastlaneCore::ConfigItem.new(key: :api_version,
+                                       env_name: 'QMOBILE_API_VERSION',
+                                       description: 'the api version of qmobile',
+                                       default_value: 'v2',
+                                       optional: true),
+          FastlaneCore::ConfigItem.new(key: :timeout,
+                                       env_name: 'QMOBILE_TIMEOUT',
+                                       description: 'the upload timeout of qmobile',
+                                       default_value: 600,
                                        optional: true),
           FastlaneCore::ConfigItem.new(key: :custom_data,
                                        env_name: 'QMOBILE_CUSTOM_DATA',

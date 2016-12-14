@@ -35,10 +35,10 @@ module Fastlane
 
       def self.app_url(json, version = false)
         host = json['host']['external']
-        slug = json['app']['slug']
+        slug = json.key?('slug') ? json['slug'] : json['app']['slug']
         paths = [host, 'apps', slug]
-        paths.push(json['version'].to_s) if version
 
+        paths.push(json['version'].to_s) if version
         paths.join('/')
       end
 
