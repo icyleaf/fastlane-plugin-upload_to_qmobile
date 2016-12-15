@@ -68,10 +68,11 @@ module Fastlane
           release_version: @app.release_version,
           build_version: @app.build_version,
 
-          branch: @options.fetch(:branch),
-          last_commit: @options.fetch(:commit),
-          ci_url: @options.fetch(:ci_url),
-          changelog: @options.fetch(:changelog)
+          channel: @options[:channel],
+          branch: @options[:branch],
+          last_commit: @options[:commit],
+          ci_url: @options[:ci_url],
+          changelog: @options[:changelog]
         }.merge(custom_data)
       end
 
@@ -80,10 +81,7 @@ module Fastlane
 
         if @app.os == 'iOS' && @app.mobileprovision && !@app.mobileprovision.empty?
           params[:release_type] = @app.release_type
-          params[:profile_name] = @app.profile_name
-          params[:profile_created_at] = @app.mobileprovision.created_date
-          params[:profile_expired_at] = @app.mobileprovision.expired_date
-          params[:devices] = @app.devices
+          params[:devices] = @app.devices if @app.devices
         end
 
         if Helper::UploadToQmobileHelper.jenkins?
