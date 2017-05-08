@@ -3,25 +3,23 @@ module Fastlane
     class UploadToQmobileHelper
       def self.new_upload(json)
         url = app_url(json[:entry])
-        shared_url(url)
+        update_fastlane_env(url)
 
-        UI.success 'Successful uploaded file'
-        UI.success url
+        UI.success "App 上传成功：#{url}"
       end
 
       def self.found_exist(json)
         url = app_url(json[:entry], true)
-        shared_url(url)
+        update_fastlane_env(url)
 
-        UI.important 'This version had been uploaded.'
-        UI.important url
+        UI.important "App 之前已经上传：#{url}"
       end
 
       def self.fail_valid(json)
         if json.empty?
-          UI.user_error! 'Unkonwn error!'
+          UI.user_error! '未知错误!'
         else
-          errors = ["[ERROR] #{json[:message]}"]
+          errors = ["[错误] #{json[:message]}"]
           json[:entry].each_with_index do |(key, items), i|
             errors.push "#{i + 1}. #{key}"
             items.each do |item|
@@ -42,7 +40,7 @@ module Fastlane
         paths.join('/')
       end
 
-      def self.shared_url(url)
+      def self.update_fastlane_env(url)
         Actions.lane_context[Actions::SharedValues::QMOBILE_PUBLISH_URL] = url
         ENV[Actions::SharedValues::QMOBILE_PUBLISH_URL.to_s] = url
       end
