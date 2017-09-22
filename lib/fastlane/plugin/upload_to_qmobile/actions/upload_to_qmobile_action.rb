@@ -150,7 +150,7 @@ module Fastlane
           FastlaneCore::ConfigItem.new(key: :channel,
                                        env_name: 'QMOBILE_CHANNEL',
                                        description: 'upload channel name',
-                                       default_value: 'fastlane',
+                                       default_value: ENV['CICL_CHANGELOG'] || 'fastlane',
                                        optional: true),
           FastlaneCore::ConfigItem.new(key: :branch,
                                        env_name: 'QMOBILE_GIT_BRANCH',
